@@ -163,7 +163,7 @@ def format_price(card: dict) -> tuple[str, str | None]:
         "",
         f"USD:      {fmt_price(prices.get('usd'), '$')}",
         f"USD Foil: {fmt_price(prices.get('usd_foil'), '$')}",
-        f"EUR:      {fmt_price(prices.get('eur'), '\u20ac')}",
+        f"EUR:      {fmt_price(prices.get('eur'), '€')}",
         f"TIX:      {fmt_price(prices.get('tix'), '')}",
         "",
         _scryfall_url(card),
