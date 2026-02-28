@@ -18,7 +18,7 @@ from db.cache import get_cached, set_cached
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://api.scryfall.com"
-USER_AGENT = "MTGSignalBot/1.0 (github.com/your-username/mtg-signal-bot)"
+USER_AGENT = "MTGSignalBot/1.0 (github.com/jimsug/mtg-signal-bot)"
 REQUEST_DELAY = 0.1  # 100ms between requests as per Scryfall guidelines
 
 
