@@ -44,12 +44,12 @@ async def _periodic_cache_purge(interval_seconds: int = 3600) -> None:
             logger.exception("Cache purge failed")
 
 
-async def main() -> None:
+def main() -> None:
     signal_service = os.environ["SIGNAL_SERVICE"]
     phone_number = os.environ["BOT_PHONE_NUMBER"]
 
     logger.info("Initialising database...")
-    await init_db()
+    asyncio.get_event_loop().run_until_complete(init_db())
 
     logger.info("Starting MTG Signal Bot on %s", phone_number)
 
@@ -61,14 +61,14 @@ async def main() -> None:
     )
     bot.register(MTGCommand())
 
-    # Run cache purge in the background
-    asyncio.create_task(_periodic_cache_purge())
+    # Schedule cache purge on the bot's event loop
+    bot._event_loop.create_task(_periodic_cache_purge())
 
     try:
         bot.start()
     finally:
-        await close_scryfall()
+        bot._event_loop.run_until_complete(close_scryfall())
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
