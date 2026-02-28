@@ -1,0 +1,24 @@
+services:
+  signal-cli-rest-api:
+    image: bbernhard/signal-cli-rest-api:latest
+    environment:
+      MODE: normal
+    ports:
+      - "8080:8080"
+    volumes:
+      - signal-cli-data:/home/.local/share/signal-cli
+
+  bot:
+    build: .
+    depends_on:
+      - signal-cli-rest-api
+    environment:
+      SIGNAL_SERVICE: http://signal-cli-rest-api:8080
+      BOT_PHONE_NUMBER: ${BOT_PHONE_NUMBER}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+
+volumes:
+  signal-cli-data:
