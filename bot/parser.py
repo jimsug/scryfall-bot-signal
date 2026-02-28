@@ -35,7 +35,19 @@ class CardQuery:
 
 
 def parse_queries(text: str) -> list[CardQuery]:
-    """Extract all [[...]] card queries from a message body."""
+    """
+    Extract card queries from a message body.
+
+    Supports two syntaxes:
+    - [[Card Name]] inline brackets (multiple per message)
+    - .Card Name as the entire message (mobile-friendly shorthand)
+    """
+    # Dot-prefix: entire message is a single query
+    stripped = text.strip()
+    if stripped.startswith(".") and len(stripped) > 1:
+        return [_parse_single(stripped[1:].strip())]
+
+    # Standard [[...]] bracket syntax
     queries = []
     for match in CARD_PATTERN.finditer(text):
         raw = match.group(1).strip()

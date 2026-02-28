@@ -2,7 +2,7 @@ services:
   signal-cli-rest-api:
     image: bbernhard/signal-cli-rest-api:latest
     environment:
-      MODE: normal
+      MODE: json-rpc
     ports:
       - "8080:8080"
     volumes:
@@ -13,7 +13,7 @@ services:
     depends_on:
       - signal-cli-rest-api
     environment:
-      SIGNAL_SERVICE: http://signal-cli-rest-api:8080
+      SIGNAL_SERVICE: signal-cli-rest-api:8080
       BOT_PHONE_NUMBER: ${BOT_PHONE_NUMBER}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     volumes:

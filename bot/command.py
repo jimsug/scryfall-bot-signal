@@ -40,6 +40,24 @@ logger = logging.getLogger(__name__)
 # one message we add a small additional gap between sends to be polite.
 BETWEEN_CARD_DELAY = 0.15
 
+HELP_TEXT = """\
+MTG Signal Bot - Card Lookup
+
+Bracket syntax (works in groups and DMs):
+  [[Card Name]]         Oracle text + image
+  [[!Card Name]]        Full card image
+  [[?Card Name]]        Rulings
+  [[#Card Name]]        Legalities
+  [[$Card Name]]        Prices
+  [[Card|SET]]          Specific set printing
+  [[Card|SET|NUM]]      Set + collector number
+
+Shorthand (entire message):
+  .Card Name            Same as [[Card Name]]
+  .!Card Name           Same as [[!Card Name]]
+
+Fuzzy matching and partial names are supported."""
+
 
 class MTGCommand(Command):
     """
@@ -58,6 +76,10 @@ class MTGCommand(Command):
     async def handle(self, c: Context) -> None:
         text = c.message.text
         if not text:
+            return
+
+        if text.strip().lower() == "/help":
+            await c.send(HELP_TEXT)
             return
 
         queries = parse_queries(text)

@@ -4,7 +4,7 @@ A Signal messenger bot that looks up Magic: The Gathering card information using
 
 ## Syntax
 
-Wrap card names in `[[double brackets]]` anywhere in a message.
+Wrap card names in `[[double brackets]]` anywhere in a message, or use the `.` shorthand for quick mobile lookups.
 
 | Syntax                  | Response                                                      |
 | ----------------------- | ------------------------------------------------------------- |
@@ -16,7 +16,21 @@ Wrap card names in `[[double brackets]]` anywhere in a message.
 | `[[Card Name\|SET]]`    | Specific set printing, e.g. `[[Jace\|WWK]]`                   |
 | `[[Card Name\|SET\|N]]` | Specific set + collector number                               |
 
-Multiple cards in one message are all handled. Fuzzy matching and partial names work the same way as Scryfall's own bot.
+Multiple `[[cards]]` in one message are all handled. Fuzzy matching and partial names work the same way as Scryfall's own bot.
+
+### Mobile shorthand
+
+Send a message starting with `.` to look up a single card without brackets:
+
+| Syntax             | Equivalent              |
+| ------------------ | ----------------------- |
+| `.Card Name`       | `[[Card Name]]`         |
+| `.!Card Name`      | `[[!Card Name]]`        |
+| `.Card Name\|SET`  | `[[Card Name\|SET]]`    |
+
+### Help
+
+Send `/help` to the bot in a direct message to see available commands.
 
 ## Requirements
 
@@ -96,7 +110,7 @@ pip install -r requirements.txt
 pytest tests/ -v
 
 # Run locally (signal-cli-rest-api still needs to be running in Docker)
-SIGNAL_SERVICE=http://localhost:8080 BOT_PHONE_NUMBER=+61400000000 python -m bot.main
+SIGNAL_SERVICE=localhost:8080 BOT_PHONE_NUMBER=+61400000000 python -m bot.main
 ```
 
 ## Project Structure
