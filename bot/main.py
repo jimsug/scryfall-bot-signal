@@ -65,7 +65,7 @@ def main() -> None:
     admin_port = int(os.environ.get("ADMIN_PORT", "8081"))
 
     logger.info("Initialising database...")
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
     loop.run_until_complete(init_db())
     loop.run_until_complete(init_usage_tables())
 
