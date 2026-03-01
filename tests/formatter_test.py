@@ -47,12 +47,12 @@ MOCK_RULINGS = [
 
 
 def test_format_default_contains_name():
-    text, image_url = format_default(MOCK_CARD)
+    text, image_urls = format_default(MOCK_CARD)
     assert "Lightning Bolt" in text
     assert "{R}" in text
     assert "Instant" in text
-    assert image_url is not None
-    assert "small" in image_url
+    assert len(image_urls) == 1
+    assert "normal" in image_urls[0]
 
 
 def test_format_default_contains_oracle():
@@ -61,17 +61,17 @@ def test_format_default_contains_oracle():
 
 
 def test_format_image_returns_normal_image():
-    text, image_url = format_image(MOCK_CARD)
+    text, image_urls = format_image(MOCK_CARD)
     assert "Lightning Bolt" in text
-    assert image_url is not None
-    assert "normal" in image_url
+    assert len(image_urls) == 1
+    assert "normal" in image_urls[0]
 
 
 def test_format_rulings():
-    text, image_url = format_rulings(MOCK_CARD, MOCK_RULINGS)
+    text, image_urls = format_rulings(MOCK_CARD, MOCK_RULINGS)
     assert "Rulings for Lightning Bolt" in text
     assert "2004-10-04" in text
-    assert image_url is None
+    assert image_urls == []
 
 
 def test_format_rulings_no_rulings():
@@ -80,20 +80,20 @@ def test_format_rulings_no_rulings():
 
 
 def test_format_legality():
-    text, image_url = format_legality(MOCK_CARD)
+    text, image_urls = format_legality(MOCK_CARD)
     assert "Legality: Lightning Bolt" in text
     assert "Legal" in text
     assert "Not legal" in text
-    assert image_url is None
+    assert image_urls == []
 
 
 def test_format_price():
-    text, image_url = format_price(MOCK_CARD)
+    text, image_urls = format_price(MOCK_CARD)
     assert "Prices: Lightning Bolt" in text
     assert "$1499.99" in text
     assert "\u20ac1200.00" in text
     assert "N/A" in text  # usd_foil is None
-    assert image_url is None
+    assert image_urls == []
 
 
 def test_format_dfc():
@@ -114,7 +114,10 @@ def test_format_dfc():
             {
                 "name": "Insectile Aberration",
                 "oracle_text": "Flying",
-                "image_uris": {},
+                "image_uris": {
+                    "small": "https://cards.scryfall.io/small/back/d/d/dd.jpg",
+                    "normal": "https://cards.scryfall.io/normal/back/d/d/dd.jpg",
+                },
             },
         ],
         "set": "isd",
@@ -123,8 +126,10 @@ def test_format_dfc():
         "scryfall_uri": "https://scryfall.com/card/isd/51",
         "id": "abc123",
     }
-    text, image_url = format_default(dfc)
+    text, image_urls = format_default(dfc)
     assert "Delver of Secrets" in text
     assert "Insectile Aberration" in text
     assert "//" in text
-    assert image_url is not None
+    assert len(image_urls) == 2
+    assert "front" in image_urls[0]
+    assert "back" in image_urls[1]

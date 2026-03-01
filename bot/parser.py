@@ -3,7 +3,7 @@ Parser for the [[Card Name]] syntax used in messages.
 
 Supported syntax (mirroring the official Scryfall Discord/Slack bots):
 
-  [[Card Name]]           Default: oracle text + mana cost + thumbnail image
+  [[Card Name]]           Default: oracle text + mana cost + image
   [[!Card Name]]          Full card image
   [[?Card Name]]          Rulings
   [[#Card Name]]          Format legalities

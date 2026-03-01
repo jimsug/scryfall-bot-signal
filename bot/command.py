@@ -66,7 +66,7 @@ class MTGCommand(Command):
     Responds to [[Card Name]] lookups in Signal messages.
 
     Flags:
-        [[Card Name]]   - oracle text + mana cost + thumbnail (default)
+        [[Card Name]]   - oracle text + mana cost + image (default)
         [[!Card Name]]  - full card image
         [[?Card Name]]  - rulings
         [[#Card Name]]  - format legalities
@@ -131,51 +131,53 @@ class MTGCommand(Command):
         flag = query.flag
 
         if flag == FLAG_IMAGE:
-            text, image_url = format_image(card)
+            text, image_urls = format_image(card)
         elif flag == FLAG_RULINGS:
             rulings = await get_rulings(card["id"])
-            text, image_url = format_rulings(card, rulings)
+            text, image_urls = format_rulings(card, rulings)
         elif flag == FLAG_LEGALITY:
-            text, image_url = format_legality(card)
+            text, image_urls = format_legality(card)
         elif flag == FLAG_PRICE:
-            text, image_url = format_price(card)
+            text, image_urls = format_price(card)
         else:
-            text, image_url = format_default(card)
+            text, image_urls = format_default(card)
 
-        if image_url:
-            await self._send_with_image(c, text, image_url)
+        if image_urls:
+            await self._send_with_images(c, text, image_urls)
         else:
             await c.send(text)
 
-    async def _send_with_image(
-        self, c: Context, text: str, image_url: str
+    async def _send_with_images(
+        self, c: Context, text: str, image_urls: list[str]
     ) -> None:
         """
-        Download an image from Scryfall and send it as an attachment.
+        Download image(s) from Scryfall and send them as attachments.
 
-        signal-cli-rest-api accepts base64-encoded attachments or file paths
-        depending on configuration. We write to a temp file and pass the path.
+        For double-faced cards this attaches both face images.
+        signal-cli-rest-api accepts base64-encoded attachments.
         """
+        tmp_paths: list[str] = []
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get(image_url, timeout=15.0)
-                response.raise_for_status()
+                for url in image_urls:
+                    response = await client.get(url, timeout=15.0)
+                    response.raise_for_status()
+                    suffix = ".jpg" if "jpg" in url else ".png"
+                    with tempfile.NamedTemporaryFile(
+                        suffix=suffix, delete=False, dir="/tmp"
+                    ) as f:
+                        f.write(response.content)
+                        tmp_paths.append(f.name)
 
-            suffix = ".jpg" if "jpg" in image_url else ".png"
-            with tempfile.NamedTemporaryFile(
-                suffix=suffix, delete=False, dir="/tmp"
-            ) as f:
-                f.write(response.content)
-                tmp_path = f.name
-
-            await c.send(text, base64_attachments=[_file_to_base64(tmp_path)])
-
-            Path(tmp_path).unlink(missing_ok=True)
+            attachments = [_file_to_base64(p) for p in tmp_paths]
+            await c.send(text, base64_attachments=attachments)
 
         except Exception as e:
-            logger.warning("Failed to fetch/send image %s: %s", image_url, e)
-            # Fall back to text-only
+            logger.warning("Failed to fetch/send images %s: %s", image_urls, e)
             await c.send(text)
+        finally:
+            for p in tmp_paths:
+                Path(p).unlink(missing_ok=True)
 
 
 def _file_to_base64(path: str) -> str:

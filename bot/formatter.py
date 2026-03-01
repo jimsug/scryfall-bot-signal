@@ -5,8 +5,9 @@ Signal doesn't support markdown, embeds, or emoji rendering the way Discord
 does, so we format everything as clean plain text. Mana symbols are rendered
 using their text equivalents (e.g. {W}, {U}, {B}, {R}, {G}).
 
-Each formatter returns a tuple of (text: str, image_url: str | None).
-The image_url is the Scryfall image to attach, or None if no image is needed.
+Each formatter returns a tuple of (text: str, image_urls: list[str]).
+image_urls contains Scryfall image URLs to attach (empty if none needed,
+two entries for double-faced cards).
 """
 
 from __future__ import annotations
@@ -46,17 +47,28 @@ def _oracle(card: dict) -> str:
     return card.get("oracle_text", "").strip()
 
 
-def _image_url(card: dict, size: str = "small") -> str | None:
+def _image_urls(card: dict, size: str = "normal") -> list[str]:
     """
-    Return an image URL for the card. Falls back to the first face for DFCs.
-    size can be: small, normal, large, png, art_crop, border_crop
+    Return image URLs for the card. For double-faced cards, returns both
+    face images. size can be: small, normal, large, png, art_crop, border_crop
     """
+    # Single-faced cards have top-level image_uris
     images = card.get("image_uris")
-    if not images and "card_faces" in card:
-        images = card["card_faces"][0].get("image_uris")
     if images:
-        return images.get(size)
-    return None
+        url = images.get(size)
+        return [url] if url else []
+
+    # Double-faced cards have per-face image_uris
+    if "card_faces" in card:
+        urls = []
+        for face in card["card_faces"]:
+            face_images = face.get("image_uris", {})
+            url = face_images.get(size)
+            if url:
+                urls.append(url)
+        return urls
+
+    return []
 
 
 def _scryfall_url(card: dict) -> str:
@@ -65,10 +77,10 @@ def _scryfall_url(card: dict) -> str:
 
 # ── Per-flag formatters ───────────────────────────────────────────────────────
 
-def format_default(card: dict) -> tuple[str, str | None]:
+def format_default(card: dict) -> tuple[str, list[str]]:
     """
     Default response: name, mana cost, type, oracle text, set info, and
-    a link to Scryfall. Returns a thumbnail image.
+    a link to Scryfall. Returns image(s).
     """
     name = card.get("name", "Unknown")
     mana = _mana(card.get("mana_cost", ""))
@@ -89,20 +101,20 @@ def format_default(card: dict) -> tuple[str, str | None]:
         _scryfall_url(card),
     ]
     text = "\n".join(line for line in lines if line is not None)
-    return text, _image_url(card, size="small")
+    return text, _image_urls(card)
 
 
-def format_image(card: dict) -> tuple[str, str | None]:
-    """Return just the card name and a full-size image."""
+def format_image(card: dict) -> tuple[str, list[str]]:
+    """Return just the card name and full-size image(s)."""
     name = card.get("name", "Unknown")
-    return name, _image_url(card, size="normal")
+    return name, _image_urls(card)
 
 
-def format_rulings(card: dict, rulings: list[dict]) -> tuple[str, str | None]:
+def format_rulings(card: dict, rulings: list[dict]) -> tuple[str, list[str]]:
     """Format Oracle rulings for a card."""
     name = card.get("name", "Unknown")
     if not rulings:
-        return f"{name}\nNo rulings available.", None
+        return f"{name}\nNo rulings available.", []
 
     lines = [f"Rulings for {name}:", ""]
     for ruling in rulings:
@@ -111,16 +123,16 @@ def format_rulings(card: dict, rulings: list[dict]) -> tuple[str, str | None]:
         lines.append(f"[{date}] {comment}")
         lines.append("")
 
-    return "\n".join(lines).strip(), None
+    return "\n".join(lines).strip(), []
 
 
-def format_legality(card: dict) -> tuple[str, str | None]:
+def format_legality(card: dict) -> tuple[str, list[str]]:
     """Format a legality table for a card."""
     name = card.get("name", "Unknown")
     legalities: dict = card.get("legalities", {})
 
     if not legalities:
-        return f"{name}\nNo legality data available.", None
+        return f"{name}\nNo legality data available.", []
 
     # Group by legal/not_legal/restricted/banned for readability
     groups: dict[str, list[str]] = {
@@ -145,10 +157,10 @@ def format_legality(card: dict) -> tuple[str, str | None]:
         if formats:
             lines.append(f"{group}: {', '.join(sorted(formats))}")
 
-    return "\n".join(lines), None
+    return "\n".join(lines), []
 
 
-def format_price(card: dict) -> tuple[str, str | None]:
+def format_price(card: dict) -> tuple[str, list[str]]:
     """Format price data for a card."""
     name = card.get("name", "Unknown")
     prices: dict = card.get("prices", {})
@@ -168,4 +180,4 @@ def format_price(card: dict) -> tuple[str, str | None]:
         "",
         _scryfall_url(card),
     ]
-    return "\n".join(lines), None
+    return "\n".join(lines), []

@@ -8,7 +8,7 @@ Wrap card names in `[[double brackets]]` anywhere in a message, or use the `.` s
 
 | Syntax                  | Response                                                      |
 | ----------------------- | ------------------------------------------------------------- |
-| `[[Card Name]]`         | Oracle text, mana cost, type line, set info + thumbnail image |
+| `[[Card Name]]`         | Oracle text, mana cost, type line, set info + image |
 | `[[!Card Name]]`        | Full card image                                               |
 | `[[?Card Name]]`        | Oracle rulings                                                |
 | `[[#Card Name]]`        | Format legalities                                             |
