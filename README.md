@@ -42,16 +42,20 @@ Send `/help` to the bot in a direct message to see available commands.
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/your-username/mtg-signal-bot
+git clone https://github.com/jimsug/mtg-signal-bot
 cd mtg-signal-bot
 cp .env.example .env
 ```
 
-Edit `.env`:
+Edit `.env` (see `.env.example` for all options):
 
 ```env
 BOT_PHONE_NUMBER=+61400000000   # E.164 format
 LOG_LEVEL=INFO
+
+# Optional - enable the admin panel
+OWNER_PHONE_NUMBER=+61400000000
+ADMIN_SECRET_KEY=               # python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
 ### 2. Link or register the bot's phone number with Signal
@@ -113,20 +117,54 @@ pytest tests/ -v
 SIGNAL_SERVICE=localhost:8080 BOT_PHONE_NUMBER=+61400000000 python -m bot.main
 ```
 
+## Admin Panel
+
+An optional web-based admin panel for monitoring usage and managing the bot. Enabled when `OWNER_PHONE_NUMBER` is set.
+
+**Authentication:** Enter your phone number to receive a 6-digit TOTP code via Signal. The panel gives no indication whether the number was correct — it always says "code sent if registered". Sessions last 30 minutes.
+
+**Features:**
+
+- **Dashboard** — Lookups today, cache size, currently suspicious users
+- **Usage log** — Paginated log of all card lookups, filterable by user UUID
+- **Ban management** — Ban/unban users by UUID (banned users are silently ignored)
+- **Cache management** — Search and purge individual cache entries or the entire cache
+- **Suspicious usage alerts** — Users exceeding 20 lookups in 5 minutes trigger a Signal message to the owner (30-minute cooldown per user)
+
+**Configuration:**
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `OWNER_PHONE_NUMBER` | _(none)_ | Owner's phone number (enables admin panel + alerts) |
+| `ADMIN_SECRET_KEY` | `change-me-in-production` | Secret for session cookie signing |
+| `ADMIN_PORT` | `8081` | Port for the admin web server |
+| `ADMIN_BASE_PATH` | _(none)_ | URL prefix, e.g. `/admin` for reverse proxy setups |
+
+The panel is designed to sit behind Tailscale, a Cloudflare Tunnel, or similar — it listens on all interfaces but relies on your network layer for access control.
+
 ## Project Structure
 
 ```
 mtg-signal-bot/
 ├── bot/
-│   ├── command.py      # signalbot Command - main message handler
-│   ├── formatter.py    # Formats Scryfall data into Signal messages
-│   ├── parser.py       # Parses [[card name]] syntax from messages
-│   └── scryfall.py     # Scryfall API client with caching
+│   ├── alerts.py       # Suspicious usage alerting via Signal
+│   ├── command.py       # signalbot Command - main message handler
+│   ├── formatter.py     # Formats Scryfall data into Signal messages
+│   ├── main.py          # Entry point, wires up bot + admin server
+│   ├── parser.py        # Parses [[card name]] syntax from messages
+│   └── scryfall.py      # Scryfall API client with caching
+├── admin/
+│   ├── app.py           # FastAPI application factory
+│   ├── auth.py          # TOTP-over-Signal authentication
+│   ├── routes.py        # Admin panel routes
+│   └── templates/       # Jinja2 HTML templates
 ├── db/
-│   └── cache.py        # SQLite cache layer (24-hour TTL)
+│   ├── cache.py         # SQLite cache layer (24-hour TTL)
+│   └── usage.py         # Usage tracking and ban management
 ├── tests/
-│   ├── test_formatter.py
-│   └── test_parser.py
+│   ├── formatter_test.py
+│   ├── parser_test.py
+│   └── usage_test.py
 ├── docker-compose.yml
 ├── Dockerfile
 └── requirements.txt

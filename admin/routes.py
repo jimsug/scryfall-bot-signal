@@ -43,6 +43,9 @@ def _timestamp_fmt(ts: int) -> str:
 
 templates.env.filters["timestamp_fmt"] = _timestamp_fmt
 
+BASE_PATH = os.environ.get("ADMIN_BASE_PATH", "").rstrip("/")
+templates.env.globals["base_path"] = BASE_PATH
+
 
 def create_router(signal_sender: SignalSender) -> APIRouter:
     router = APIRouter()
@@ -70,7 +73,7 @@ def create_router(signal_sender: SignalSender) -> APIRouter:
     async def verify_submit(request: Request, code: str = Form(...)):
         if verify_code(code.strip()):
             token = create_session_token()
-            response = RedirectResponse(url="/", status_code=303)
+            response = RedirectResponse(url=f"{BASE_PATH}/", status_code=303)
             response.set_cookie(SESSION_COOKIE, token, httponly=True, samesite="strict")
             return response
         return templates.TemplateResponse("verify.html", {
@@ -80,7 +83,7 @@ def create_router(signal_sender: SignalSender) -> APIRouter:
 
     @router.get("/logout")
     async def logout():
-        response = RedirectResponse(url="/login", status_code=303)
+        response = RedirectResponse(url=f"{BASE_PATH}/login", status_code=303)
         response.delete_cookie(SESSION_COOKIE)
         return response
 
@@ -122,12 +125,12 @@ def create_router(signal_sender: SignalSender) -> APIRouter:
     @router.post("/bans", dependencies=[Depends(require_auth)])
     async def ban_submit(user_uuid: str = Form(...), reason: str = Form("")):
         await ban_user(user_uuid.strip(), reason.strip() or None)
-        return RedirectResponse(url="/bans", status_code=303)
+        return RedirectResponse(url=f"{BASE_PATH}/bans", status_code=303)
 
     @router.post("/bans/{user_uuid}/unban", dependencies=[Depends(require_auth)])
     async def unban_submit(user_uuid: str):
         await unban_user(user_uuid)
-        return RedirectResponse(url="/bans", status_code=303)
+        return RedirectResponse(url=f"{BASE_PATH}/bans", status_code=303)
 
     @router.get("/cache", response_class=HTMLResponse, dependencies=[Depends(require_auth)])
     async def cache_page(request: Request, q: str = ""):
@@ -143,11 +146,11 @@ def create_router(signal_sender: SignalSender) -> APIRouter:
     @router.post("/cache/purge", dependencies=[Depends(require_auth)])
     async def cache_purge(key: str = Form(...)):
         await purge_key(key.strip())
-        return RedirectResponse(url="/cache", status_code=303)
+        return RedirectResponse(url=f"{BASE_PATH}/cache", status_code=303)
 
     @router.post("/cache/purge-all", dependencies=[Depends(require_auth)])
     async def cache_purge_all():
         await purge_all()
-        return RedirectResponse(url="/cache", status_code=303)
+        return RedirectResponse(url=f"{BASE_PATH}/cache", status_code=303)
 
     return router

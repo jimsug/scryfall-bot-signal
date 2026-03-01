@@ -15,6 +15,7 @@ Optional:
     OWNER_PHONE_NUMBER  - Owner's phone for admin TOTP and alerts
     ADMIN_PORT          - Port for admin web panel, default 8081
     ADMIN_SECRET_KEY    - Secret key for session signing
+    ADMIN_BASE_PATH     - URL prefix for admin panel, e.g. /admin
 """
 
 import asyncio

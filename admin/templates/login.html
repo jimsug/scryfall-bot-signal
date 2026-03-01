@@ -5,7 +5,7 @@
 <div class="card" style="max-width: 400px; margin: 4rem auto;">
   <h2>Admin Login</h2>
   <p style="margin-bottom: 1rem; color: #666;">Enter your phone number to receive a login code via Signal.</p>
-  <form method="post" action="/login">
+  <form method="post" action="{{ base_path }}/login">
     <div style="margin-bottom: 1rem;">
       <input type="tel" name="phone" placeholder="+61400000000" required style="width: 100%;">
     </div>

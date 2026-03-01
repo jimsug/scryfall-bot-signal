@@ -32,8 +32,8 @@
         <td>{{ u.user_phone or "—" }}</td>
         <td>{{ u.lookup_count }}</td>
         <td>
-          <a href="/usage?user_uuid={{ u.user_uuid }}" class="btn btn-sm btn-primary">View</a>
-          <form class="inline" method="post" action="/bans">
+          <a href="{{ base_path }}/usage?user_uuid={{ u.user_uuid }}" class="btn btn-sm btn-primary">View</a>
+          <form class="inline" method="post" action="{{ base_path }}/bans">
             <input type="hidden" name="user_uuid" value="{{ u.user_uuid }}">
             <input type="hidden" name="reason" value="Suspicious usage alert">
             <button type="submit" class="btn btn-sm btn-danger">Ban</button>

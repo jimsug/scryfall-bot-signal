@@ -4,11 +4,11 @@
 <h2 style="margin-bottom: 1rem;">Usage Log ({{ total }} total)</h2>
 
 <div class="card">
-  <form method="get" action="/usage" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+  <form method="get" action="{{ base_path }}/usage" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
     <input type="text" name="user_uuid" placeholder="Filter by user UUID" value="{{ user_uuid }}" style="flex: 1;">
     <button type="submit" class="btn btn-primary">Filter</button>
     {% if user_uuid %}
-    <a href="/usage" class="btn" style="border: 1px solid #ccc;">Clear</a>
+    <a href="{{ base_path }}/usage" class="btn" style="border: 1px solid #ccc;">Clear</a>
     {% endif %}
   </form>
 
@@ -21,7 +21,7 @@
       <tr>
         <td style="white-space: nowrap;">{{ row.timestamp | timestamp_fmt }}</td>
         <td style="font-family: monospace; font-size: 0.8rem;">
-          <a href="/usage?user_uuid={{ row.user_uuid }}">{{ row.user_uuid[:12] }}...</a>
+          <a href="{{ base_path }}/usage?user_uuid={{ row.user_uuid }}">{{ row.user_uuid[:12] }}...</a>
         </td>
         <td>{{ row.user_phone or "—" }}</td>
         <td>{{ row.query }}</td>
@@ -36,7 +36,7 @@
   {% if total_pages > 1 %}
   <div class="pagination">
     {% for p in range(1, total_pages + 1) %}
-    <a href="/usage?page={{ p }}{% if user_uuid %}&user_uuid={{ user_uuid }}{% endif %}"
+    <a href="{{ base_path }}/usage?page={{ p }}{% if user_uuid %}&user_uuid={{ user_uuid }}{% endif %}"
        class="{{ 'active' if p == page else '' }}">{{ p }}</a>
     {% endfor %}
   </div>

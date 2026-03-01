@@ -96,7 +96,8 @@ async def require_auth(request: Request) -> None:
     """FastAPI dependency that enforces authentication."""
     token = request.cookies.get(SESSION_COOKIE)
     if not token or not validate_session(token):
-        raise HTTPException(status_code=303, headers={"Location": "/login"})
+        base_path = os.environ.get("ADMIN_BASE_PATH", "").rstrip("/")
+        raise HTTPException(status_code=303, headers={"Location": f"{base_path}/login"})
 
 
 def cleanup_expired_codes() -> None:

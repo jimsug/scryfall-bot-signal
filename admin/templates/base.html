@@ -42,12 +42,12 @@
   {% block nav %}
   <nav>
     <span class="brand">MTG Bot Admin</span>
-    <a href="/">Dashboard</a>
-    <a href="/usage">Usage</a>
-    <a href="/bans">Bans</a>
-    <a href="/cache">Cache</a>
+    <a href="{{ base_path }}/">Dashboard</a>
+    <a href="{{ base_path }}/usage">Usage</a>
+    <a href="{{ base_path }}/bans">Bans</a>
+    <a href="{{ base_path }}/cache">Cache</a>
     <span class="spacer"></span>
-    <a href="/logout">Logout</a>
+    <a href="{{ base_path }}/logout">Logout</a>
   </nav>
   {% endblock %}
   <div class="container">

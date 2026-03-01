@@ -18,6 +18,7 @@ services:
       OWNER_PHONE_NUMBER: ${OWNER_PHONE_NUMBER:-}
       ADMIN_PORT: ${ADMIN_PORT:-8081}
       ADMIN_SECRET_KEY: ${ADMIN_SECRET_KEY:-change-me-in-production}
+      ADMIN_BASE_PATH: ${ADMIN_BASE_PATH:-}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
       - "${ADMIN_PORT:-8081}:${ADMIN_PORT:-8081}"

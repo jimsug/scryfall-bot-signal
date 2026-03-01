@@ -6,13 +6,13 @@
 <div class="card">
   <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
     <span>{{ stats.total_entries }} cached entries</span>
-    <form class="inline" method="post" action="/cache/purge-all"
+    <form class="inline" method="post" action="{{ base_path }}/cache/purge-all"
           onsubmit="return confirm('Purge ALL cached cards?')">
       <button type="submit" class="btn btn-sm btn-danger">Purge All</button>
     </form>
   </div>
 
-  <form method="get" action="/cache" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+  <form method="get" action="{{ base_path }}/cache" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
     <input type="text" name="q" placeholder="Search by cache key (e.g. 'named:lightning')" value="{{ query }}" style="flex: 1;">
     <button type="submit" class="btn btn-primary">Search</button>
   </form>
@@ -28,7 +28,7 @@
         <td style="font-family: monospace; font-size: 0.85rem;">{{ e.cache_key }}</td>
         <td>{{ e.cached_at | timestamp_fmt }}</td>
         <td>
-          <form class="inline" method="post" action="/cache/purge">
+          <form class="inline" method="post" action="{{ base_path }}/cache/purge">
             <input type="hidden" name="key" value="{{ e.cache_key }}">
             <button type="submit" class="btn btn-sm btn-danger">Purge</button>
           </form>
