@@ -2,6 +2,7 @@
 
 import time
 import pytest
+import pytest_asyncio
 import aiosqlite
 
 from db.cache import DB_PATH
@@ -18,7 +19,7 @@ from db.usage import (
 )
 
 
-@pytest.fixture(autouse=True)
+@pytest_asyncio.fixture(autouse=True)
 async def setup_db(tmp_path, monkeypatch):
     """Use a temporary DB for each test."""
     test_db = tmp_path / "test.db"
