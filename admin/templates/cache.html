@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Cache{% endblock %}
+{% block content %}
+<h2 style="margin-bottom: 1rem;">Cache Management</h2>
+
+<div class="card">
+  <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+    <span>{{ stats.total_entries }} cached entries</span>
+    <form class="inline" method="post" action="/cache/purge-all"
+          onsubmit="return confirm('Purge ALL cached cards?')">
+      <button type="submit" class="btn btn-sm btn-danger">Purge All</button>
+    </form>
+  </div>
+
+  <form method="get" action="/cache" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+    <input type="text" name="q" placeholder="Search by cache key (e.g. 'named:lightning')" value="{{ query }}" style="flex: 1;">
+    <button type="submit" class="btn btn-primary">Search</button>
+  </form>
+
+  {% if entries %}
+  <table>
+    <thead>
+      <tr><th>Cache Key</th><th>Cached At</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for e in entries %}
+      <tr>
+        <td style="font-family: monospace; font-size: 0.85rem;">{{ e.cache_key }}</td>
+        <td>{{ e.cached_at | timestamp_fmt }}</td>
+        <td>
+          <form class="inline" method="post" action="/cache/purge">
+            <input type="hidden" name="key" value="{{ e.cache_key }}">
+            <button type="submit" class="btn btn-sm btn-danger">Purge</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% elif query %}
+  <p style="color: #999; text-align: center;">No cache entries matching "{{ query }}".</p>
+  {% endif %}
+</div>
+{% endblock %}

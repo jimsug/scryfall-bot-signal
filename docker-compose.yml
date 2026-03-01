@@ -15,7 +15,12 @@ services:
     environment:
       SIGNAL_SERVICE: signal-cli-rest-api:8080
       BOT_PHONE_NUMBER: ${BOT_PHONE_NUMBER}
+      OWNER_PHONE_NUMBER: ${OWNER_PHONE_NUMBER:-}
+      ADMIN_PORT: ${ADMIN_PORT:-8081}
+      ADMIN_SECRET_KEY: ${ADMIN_SECRET_KEY:-change-me-in-production}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "${ADMIN_PORT:-8081}:${ADMIN_PORT:-8081}"
     volumes:
       - ./data:/app/data
     restart: unless-stopped

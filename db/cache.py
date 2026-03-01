@@ -77,3 +77,40 @@ async def purge_expired() -> int:
         count = cursor.rowcount
     logger.info("Purged %d expired cache entries", count)
     return count
+
+
+async def search_cache(prefix: str) -> list[dict]:
+    """Search cache entries whose key contains the given substring."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT cache_key, cached_at FROM card_cache WHERE cache_key LIKE ? LIMIT 100",
+            (f"%{prefix}%",),
+        ) as cursor:
+            return [dict(row) for row in await cursor.fetchall()]
+
+
+async def purge_key(key: str) -> None:
+    """Delete a specific cache entry by key."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("DELETE FROM card_cache WHERE cache_key = ?", (key,))
+        await db.commit()
+    logger.info("Purged cache key: %s", key)
+
+
+async def purge_all() -> int:
+    """Delete all cache entries. Returns the number of rows deleted."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        cursor = await db.execute("DELETE FROM card_cache")
+        await db.commit()
+        count = cursor.rowcount
+    logger.info("Purged all %d cache entries", count)
+    return count
+
+
+async def get_cache_stats() -> dict:
+    """Return basic cache statistics."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT COUNT(*) FROM card_cache") as cursor:
+            total = (await cursor.fetchone())[0]
+    return {"total_entries": total}

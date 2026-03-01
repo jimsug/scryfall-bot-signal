@@ -33,6 +33,8 @@ from bot.scryfall import (
     get_rulings,
     ScryfallError,
 )
+from db.usage import log_usage, is_banned
+from bot.alerts import check_and_alert, SignalSender
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +75,15 @@ class MTGCommand(Command):
         [[Card|SET|N]]  - specific set + collector number
     """
 
+    def __init__(
+        self,
+        signal_sender: SignalSender | None = None,
+        owner_phone: str | None = None,
+    ):
+        super().__init__()
+        self._signal_sender = signal_sender
+        self._owner_phone = owner_phone
+
     async def handle(self, c: Context) -> None:
         text = c.message.text
         if not text:
@@ -86,12 +97,23 @@ class MTGCommand(Command):
         if not queries:
             return
 
+        user_uuid = getattr(c.message, "source_uuid", None) or "unknown"
+        user_phone = getattr(c.message, "source_number", None)
+
+        if await is_banned(user_uuid):
+            return
+
         for i, query in enumerate(queries):
             if i > 0:
                 await asyncio.sleep(BETWEEN_CARD_DELAY)
 
             try:
                 await self._handle_query(c, query)
+                await log_usage(user_uuid, user_phone, query.raw)
+                if self._signal_sender and self._owner_phone:
+                    await check_and_alert(
+                        user_uuid, self._signal_sender, self._owner_phone
+                    )
             except ScryfallError as e:
                 logger.warning("Scryfall error for query '%s': %s", query.raw, e)
                 await c.send(f"Could not find card '{query.name}': {e.details}")

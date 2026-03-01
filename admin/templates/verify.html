@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Verify{% endblock %}
+{% block nav %}{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 400px; margin: 4rem auto;">
+  <h2>Enter Code</h2>
+  {% if message %}
+  <div class="msg msg-info">{{ message }}</div>
+  {% endif %}
+  <form method="post" action="/verify">
+    <div style="margin-bottom: 1rem;">
+      <input type="text" name="code" placeholder="000000" maxlength="6" pattern="\d{6}" required
+             style="width: 100%; text-align: center; font-size: 1.5rem; letter-spacing: 0.5rem;">
+    </div>
+    <button type="submit" class="btn btn-primary" style="width: 100%;">Verify</button>
+  </form>
+  <p style="margin-top: 1rem; text-align: center;">
+    <a href="/login" style="color: #666; font-size: 0.85rem;">Request a new code</a>
+  </p>
+</div>
+{% endblock %}

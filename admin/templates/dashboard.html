@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h2 style="margin-bottom: 1rem;">Dashboard</h2>
+
+<div class="stats-grid" style="margin-bottom: 1.5rem;">
+  <div class="card stat">
+    <div class="value">{{ lookups_today }}</div>
+    <div class="label">Lookups today</div>
+  </div>
+  <div class="card stat">
+    <div class="value">{{ cache_stats.total_entries }}</div>
+    <div class="label">Cached cards</div>
+  </div>
+  <div class="card stat">
+    <div class="value">{{ suspicious|length }}</div>
+    <div class="label">Suspicious users</div>
+  </div>
+</div>
+
+{% if suspicious %}
+<div class="card">
+  <h2>Suspicious Users (last 5 min)</h2>
+  <table>
+    <thead>
+      <tr><th>User UUID</th><th>Phone</th><th>Lookups</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for u in suspicious %}
+      <tr>
+        <td style="font-family: monospace; font-size: 0.8rem;">{{ u.user_uuid[:12] }}...</td>
+        <td>{{ u.user_phone or "—" }}</td>
+        <td>{{ u.lookup_count }}</td>
+        <td>
+          <a href="/usage?user_uuid={{ u.user_uuid }}" class="btn btn-sm btn-primary">View</a>
+          <form class="inline" method="post" action="/bans">
+            <input type="hidden" name="user_uuid" value="{{ u.user_uuid }}">
+            <input type="hidden" name="reason" value="Suspicious usage alert">
+            <button type="submit" class="btn btn-sm btn-danger">Ban</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

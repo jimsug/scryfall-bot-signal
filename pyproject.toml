@@ -1,3 +1,4 @@
 [tool.pytest.ini_options]
 python_files = ["*_test.py"]
 pythonpath = ["."]
+asyncio_mode = "auto"
