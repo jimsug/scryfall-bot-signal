@@ -124,10 +124,16 @@ class MTGCommand(Command):
                     )
             except ScryfallError as e:
                 logger.warning("Scryfall error for query '%s': %s", query.raw, e)
-                await c.send(f"Could not find card '{query.name}': {e.details}")
+                if c.message.group:
+                    await c.react("\u2753")  # ❓
+                else:
+                    await c.send(f"Could not find card '{query.name}': {e.details}")
             except Exception as e:
                 logger.exception("Unexpected error for query '%s'", query.raw)
-                await c.send(f"Something went wrong looking up '{query.name}'.")
+                if c.message.group:
+                    await c.react("\u2753")  # ❓
+                else:
+                    await c.send(f"Something went wrong looking up '{query.name}'.")
 
     async def _handle_reaction(self, c: Context) -> None:
         """Delete the bot's message when a user reacts with a trash/X emoji."""
