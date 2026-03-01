@@ -6,6 +6,7 @@ finds [[card name]] syntax. Multiple cards per message are supported.
 """
 
 import io
+import json
 import logging
 import tempfile
 import asyncio
@@ -41,6 +42,7 @@ logger = logging.getLogger(__name__)
 # Scryfall asks for 100ms between requests; when handling multiple cards in
 # one message we add a small additional gap between sends to be polite.
 BETWEEN_CARD_DELAY = 0.15
+DELETE_EMOJIS = {"\U0001f5d1\ufe0f", "\U0001f5d1", "\u274c"}  # 🗑️, 🗑, ❌
 
 HELP_TEXT = """\
 MTG Signal Bot - Card Lookup
@@ -79,12 +81,18 @@ class MTGCommand(Command):
         self,
         signal_sender: SignalSender | None = None,
         owner_phone: str | None = None,
+        bot_phone: str | None = None,
     ):
         super().__init__()
         self._signal_sender = signal_sender
         self._owner_phone = owner_phone
+        self._bot_phone = bot_phone
 
     async def handle(self, c: Context) -> None:
+        if c.message.reaction:
+            await self._handle_reaction(c)
+            return
+
         text = c.message.text
         if not text:
             return
@@ -120,6 +128,38 @@ class MTGCommand(Command):
             except Exception as e:
                 logger.exception("Unexpected error for query '%s'", query.raw)
                 await c.send(f"Something went wrong looking up '{query.name}'.")
+
+    async def _handle_reaction(self, c: Context) -> None:
+        """Delete the bot's message when a user reacts with a trash/X emoji."""
+        if c.message.reaction not in DELETE_EMOJIS:
+            return
+
+        try:
+            raw = json.loads(c.message.raw_message)
+            envelope = raw.get("envelope", {})
+
+            data_msg = envelope.get("dataMessage") or {}
+            if "syncMessage" in envelope:
+                data_msg = envelope["syncMessage"].get("sentMessage", {})
+
+            reaction = data_msg.get("reaction", {})
+            target_author = reaction.get("targetAuthor")
+            target_timestamp = reaction.get("targetSentTimestamp")
+
+            if reaction.get("isRemove", False) or not target_timestamp:
+                return
+
+            if target_author != self._bot_phone:
+                return
+
+            await c.remote_delete(target_timestamp)
+            logger.info(
+                "Deleted bot message (timestamp=%d) on reaction from %s",
+                target_timestamp,
+                c.message.source_uuid,
+            )
+        except Exception:
+            logger.exception("Failed to handle delete reaction")
 
     async def _handle_query(self, c: Context, query) -> None:
         card = await get_card_by_name(

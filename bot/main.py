@@ -82,7 +82,11 @@ def main() -> None:
     async def signal_sender(phone: str, message: str) -> None:
         await bot._signal.send(phone, message)
 
-    bot.register(MTGCommand(signal_sender=signal_sender, owner_phone=owner_phone))
+    bot.register(MTGCommand(
+        signal_sender=signal_sender,
+        owner_phone=owner_phone,
+        bot_phone=phone_number,
+    ))
 
     # Schedule cache purge on the bot's event loop
     bot._event_loop.create_task(_periodic_cache_purge())
