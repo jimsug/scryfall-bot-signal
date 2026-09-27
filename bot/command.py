@@ -30,6 +30,7 @@ from bot.formatter import (
     format_price,
 )
 from bot.scryfall import (
+    USER_AGENT,
     get_card_by_name,
     get_rulings,
     ScryfallError,
@@ -38,6 +39,9 @@ from db.usage import log_usage, is_banned
 from bot.alerts import check_and_alert, SignalSender
 
 logger = logging.getLogger(__name__)
+
+# Scryfall rejects image requests without a User-Agent and a specific Accept.
+IMAGE_HEADERS = {"User-Agent": USER_AGENT, "Accept": "image/*"}
 
 # Scryfall asks for 100ms between requests; when handling multiple cards in
 # one message we add a small additional gap between sends to be polite.
@@ -204,7 +208,7 @@ class MTGCommand(Command):
         """
         tmp_paths: list[str] = []
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(headers=IMAGE_HEADERS) as client:
                 for url in image_urls:
                     response = await client.get(url, timeout=15.0)
                     response.raise_for_status()
